@@ -1,14 +1,20 @@
 import { motion } from "framer-motion";
 import { Target, Zap, TriangleAlert as AlertTriangle, ChevronRight, CircleCheck as CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { founderFocus, ventures } from "@/data/ventures";
+import { founderFocus } from "@/data/ventures";
+import { usePortfolio } from "@/state/portfolio-store";
 
 interface FounderFocusProps {
   onVentureClick: (id: string) => void;
 }
 
 export function FounderFocus({ onVentureClick }: FounderFocusProps) {
-  const venture = ventures.find((v) => v.id === founderFocus.ventureId)!;
+  const { ventures } = usePortfolio();
+  const venture = ventures.find((v) => v.id === founderFocus.ventureId) ?? ventures[0];
+
+  if (!venture) {
+    return null;
+  }
 
   return (
     <motion.div
@@ -42,7 +48,7 @@ export function FounderFocus({ onVentureClick }: FounderFocusProps) {
       <div className="p-5 flex flex-col gap-5">
         {/* Venture name */}
         <button
-          onClick={() => onVentureClick(founderFocus.ventureId)}
+          onClick={() => onVentureClick(venture.id)}
           className={cn(
             "flex items-center justify-between w-full group",
             "rounded-lg border px-4 py-3 text-left transition-all duration-200",
@@ -58,7 +64,7 @@ export function FounderFocus({ onVentureClick }: FounderFocusProps) {
             />
             <div>
               <span className="font-display font-bold text-base text-foreground">
-                {founderFocus.ventureName}
+                {venture.name}
               </span>
               <span className="ml-2 text-xs text-muted-foreground">
                 L{venture.level} · {venture.survivalLabel}

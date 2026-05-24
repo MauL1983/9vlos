@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { Clock, TrendingUp, TrendingDown, Minus } from "lucide-react";
-import { ventures } from "@/data/ventures";
+import { type Venture, usePortfolio } from "@/state/portfolio-store";
 
-function getSurvivalProb(v: (typeof ventures)[0]): number {
+function getSurvivalProb(v: Venture): number {
   const timeRatio = v.survivalMonthsLeft / v.survivalTotalMonths;
   const healthFactor = v.healthScore / 100;
   const momentumFactor =
@@ -17,6 +17,7 @@ function getProbColor(prob: number): string {
 }
 
 export function SurvivalSystem() {
+  const { ventures } = usePortfolio();
   const incubation = ventures.filter((v) => v.track !== "Core");
 
   return (

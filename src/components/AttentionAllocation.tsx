@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import { Brain, TrendingUp, OctagonAlert as AlertOctagon } from "lucide-react";
-import { ventures } from "@/data/ventures";
+import { usePortfolio } from "@/state/portfolio-store";
 
 export function AttentionAllocation() {
+  const { ventures } = usePortfolio();
   const sorted = [...ventures].sort((a, b) => b.attentionPercent - a.attentionPercent);
   const interventionNeeded = ventures.filter((v) => v.needsIntervention);
 

@@ -2,11 +2,12 @@ import { Moon, Sun, CircleAlert as AlertCircle, Activity, Layers } from "lucide-
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ventures } from "@/data/ventures";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { usePortfolio } from "@/state/portfolio-store";
 
 export function PortfolioPulse() {
   const { theme, setTheme } = useTheme();
+  const { ventures } = usePortfolio();
   const atRisk = ventures.filter((v) => v.healthScore < 40 || v.survivalMonthsLeft <= 5).length;
   const onClock = ventures.filter((v) => v.track === "Incubation").length;
 

@@ -1,10 +1,21 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Minus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { HealthRing } from "@/components/HealthRing";
-import { ventures, LEVEL_LABELS } from "@/data/ventures";
+import { LEVEL_LABELS } from "@/data/ventures";
 import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { usePortfolio, type Momentum, type VentureTrack } from "@/state/portfolio-store";
 
 interface VentureDetailProps {
   ventureId: string;
@@ -12,11 +23,21 @@ interface VentureDetailProps {
 }
 
 export function VentureDetail({ ventureId, onBack }: VentureDetailProps) {
+  const { ventures, updateVenture, removeVenture } = usePortfolio();
   const venture = ventures.find((v) => v.id === ventureId);
   if (!venture) return null;
 
   const isAtRisk = venture.healthScore < 40 || venture.survivalMonthsLeft <= 5;
   const survivalPct = (venture.survivalMonthsLeft / venture.survivalTotalMonths) * 100;
+  const ventureName = venture.name;
+  const ventureIdToArchive = venture.id;
+
+  function handleRemove() {
+    if (window.confirm(`Archive ${ventureName} and remove it from active slots?`)) {
+      removeVenture(ventureIdToArchive);
+      onBack();
+    }
+  }
 
   return (
     <div className="p-6 max-w-[900px] mx-auto flex flex-col gap-6">
@@ -26,10 +47,16 @@ export function VentureDetail({ ventureId, onBack }: VentureDetailProps) {
         transition={{ duration: 0.3 }}
         className="flex items-center gap-3"
       >
-        <Button variant="ghost" size="sm" onClick={onBack} className="gap-1.5 -ml-2">
-          <ArrowLeft className="size-4" />
-          Back
-        </Button>
+        <div className="flex flex-1 items-center justify-between gap-3">
+          <Button variant="ghost" size="sm" onClick={onBack} className="gap-1.5 -ml-2">
+            <ArrowLeft className="size-4" />
+            Back
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleRemove} className="gap-1.5 text-health-red">
+            <Trash2 className="size-4" />
+            Archive
+          </Button>
+        </div>
       </motion.div>
 
       {/* Hero */}
@@ -109,6 +136,92 @@ export function VentureDetail({ ventureId, onBack }: VentureDetailProps) {
             <span className="text-[11px] text-muted-foreground">
               {venture.survivalMonthsLeft} of {venture.survivalTotalMonths} months remaining
             </span>
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15, duration: 0.4 }}
+        className="rounded-xl border border-border bg-card p-5"
+      >
+        <div className="mb-4 flex flex-col gap-1">
+          <h2 className="font-display font-semibold text-sm text-foreground">Operating Controls</h2>
+          <p className="text-xs text-muted-foreground">
+            Adjust the live portfolio model. Changes persist in this browser.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <Label>Health score</Label>
+              <span className="font-display text-sm font-bold text-cyan-glow">{venture.healthScore}</span>
+            </div>
+            <Slider
+              min={0}
+              max={100}
+              step={1}
+              value={[venture.healthScore]}
+              onValueChange={([healthScore]) => updateVenture(venture.id, { healthScore })}
+            />
+          </div>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <Label>Survival clock</Label>
+              <span className="font-display text-sm font-bold text-health-amber">
+                {venture.survivalMonthsLeft} mo
+              </span>
+            </div>
+            <Slider
+              min={0}
+              max={venture.survivalTotalMonths}
+              step={1}
+              value={[venture.survivalMonthsLeft]}
+              onValueChange={([survivalMonthsLeft]) =>
+                updateVenture(venture.id, { survivalMonthsLeft })
+              }
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label>Momentum</Label>
+            <Select
+              value={venture.momentum}
+              onValueChange={(momentum: Momentum) => updateVenture(venture.id, { momentum })}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="accelerating">Accelerating</SelectItem>
+                <SelectItem value="steady">Steady</SelectItem>
+                <SelectItem value="slowing">Slowing</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-2">
+            <Label>Track</Label>
+            <Select
+              value={venture.track}
+              onValueChange={(track: VentureTrack) => updateVenture(venture.id, { track })}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Core">Core</SelectItem>
+                <SelectItem value="Growth">Growth</SelectItem>
+                <SelectItem value="Incubation">Incubation</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-2 md:col-span-2">
+            <Label htmlFor="next-milestone">Next milestone</Label>
+            <Input
+              id="next-milestone"
+              value={venture.nextMilestone}
+              onChange={(event) => updateVenture(venture.id, { nextMilestone: event.target.value })}
+            />
           </div>
         </div>
       </motion.div>
